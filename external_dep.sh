@@ -8,5 +8,7 @@ chmod +x muscle3.8.31_i86linux32
 mkdir -p bin
 mv muscle3.8.31_i86linux32 ./bin/muscle
 ./bin/muscle
+cp ./bin/muscle /usr/local/bin/
 cd ..
-echo $PATH
+muscle
+which muscle
