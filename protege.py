@@ -91,7 +91,7 @@ parser.add_argument('-v','--verbose',
 
 args = parser.parse_args()
 
-genFile = args.seqPath
+#genFile = args.seqPath
 consensusPerc =  args.consensusPerc
 gapConsensus = args.gapConsensus
 codon = args.codon
@@ -176,7 +176,7 @@ print(muscle_cline)
 
 
 #muscle_cline = MuscleCommandline(muscle,input = in_file)
-alnProc = subprocess.run([muscle, "-in", in_file, "-out", out_file], capture_output=True)
+alnProc = subprocess.run(["muscle_lin", "-in", in_file, "-out", out_file], capture_output=True)
 #stdout, stderr = subprocess.run([muscle, "-in", in_file, "-out", out_file], capture_output=True)
 #align = AlignIO.read(StringIO(stdout), "fasta")
 align = AlignIO.read(open(out_file), "fasta")
