@@ -119,7 +119,7 @@ sysInfo = platform.system()
 
 
 
-genFile = pPath + '/' + genFile
+#genFile = pPath + '/' + genFile
 translatedName = 'translated_seqs_pL.fas'
 
 
