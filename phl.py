@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jan 14 10:28:01 2020
@@ -7,6 +8,10 @@ Created on Tue Jan 14 10:28:01 2020
 import plotly.graph_objects as go
 import plotly.figure_factory as ff
 import pandas as pd
+from Bio.SeqUtils import MeltingTemp as mt
+from Bio.Seq import Seq
+
+
 
 class primerDeg:
     def __init__(self, primerDG):
@@ -172,6 +177,21 @@ class primerDeg:
             #print('GC: ' + str(crrntP['GC']) + 'Tm: '  + str(tTm))
             Tm.append(round(tTm,4))
         return Tm
+        
+    def TmAp3(self):
+        Tm = []
+        primerComb = self.primerComb()
+        for i in range(0,len(primerComb)):
+            Tm.append(mt.Tm_GC(Seq(primerComb[i])))
+        return Tm
+        
+    def TmNN(self):
+        Tm = []
+        primerComb = self.primerComb()
+        for i in range(0,len(primerComb)):
+            Tm.append(mt.Tm_NN(Seq(primerComb[i])))
+        return Tm        
+        
     
 def posDegScatter(phyloDF):
     fig = go.Figure(data=go.Scatter(x = phyloDF['position'],
