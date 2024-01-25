@@ -12,7 +12,7 @@ import phl as pt
 import os
 import sys
 import platform
-from Bio.Align.Applications import MuscleCommandline
+#from Bio.Align.Applications import MuscleCommandline
 from io import StringIO
 from Bio import AlignIO
 import numpy as np
@@ -25,8 +25,11 @@ import plotly.figure_factory as ff
 from dash.dependencies import Input, Output
 import logging
 import warnings
-
 import argparse
+
+import subprocess
+import shlex
+
 
 warnings.filterwarnings("ignore")
 #np.seterr(divide='ignore', invalid='ignore')
@@ -112,15 +115,9 @@ sysInfo = platform.system()
 #genFile = 'gyrB_genes.fas'
 
 
-if sysInfo == 'Windows':
-    genFile = pPath + '\\' + genFile
-    translatedName = 'translated_seqs_pW.fas'
-elif sysInfo == 'Linux':
-    genFile = pPath + '/' + genFile
-    translatedName = 'translated_seqs_pL.fas'
-elif sysInfo == 'Darwin':
-    genFile = pPath + '/' + genFile
-    translatedName = 'translated_seqs_pM.fas'
+
+genFile = pPath + '/' + genFile
+translatedName = 'translated_seqs_pL.fas'
 
 
 
@@ -160,37 +157,32 @@ for i in range(0,len(sequences)):
     f.write(sequences.amino_seq[i] + '\n')
 f.close()
 
+muscle = pPath + '/muscle/muscle_lin'
+in_file = translatedName
+out_file =  'aligned_muscle_pl_'+ translatedName
 
 
-if sysInfo == 'Windows':
-    muscle = pPath + '\\muscle\\muscle_win.exe'
-    in_file = translatedName
-    out_file =  'aligned_muscle_pl_'+ translatedName
 
-elif sysInfo == 'Linux':
-    muscle = pPath + '/muscle/muscle_lin'
-    in_file = translatedName
-    out_file =  'aligned_muscle_pl_'+ translatedName
+#muscle_cline = MuscleCommandline(muscle, input=in_file, out=out_file)
+muscle_cline  = str(muscle) + ' -in ' + str(in_file) + ' -out ' + out_file
 
-elif sysInfo == 'Darwin':
-    muscle = pPath + '/muscle/muscle_darwin'
-    
-    in_file = translatedName
-    out_file =  'aligned_muscle_pl_'+ translatedName
-
-
-muscle_cline = MuscleCommandline(muscle, input=in_file, out=out_file)
 
 print(muscle_cline)
-muscle_cline()
+#muscle_cline()
 
 
 
-muscle_cline = MuscleCommandline(muscle,input = in_file)
-stdout, stderr = muscle_cline()
-align = AlignIO.read(StringIO(stdout), "fasta")
-print(align)
+#muscle_cline = MuscleCommandline(muscle,input = in_file)
+alnProc = subprocess.run([muscle, "-in", in_file, "-out", out_file], capture_output=True)
+#stdout, stderr = subprocess.run([muscle, "-in", in_file, "-out", out_file], capture_output=True)
+#align = AlignIO.read(StringIO(stdout), "fasta")
+align = AlignIO.read(open(out_file), "fasta")
+#print(align)
 
+
+print("Alignment length %i" % align.get_alignment_length())
+for record in align:
+   print(record.seq + " " + record.id) 
 
 idAl = []
 alSqs = []
@@ -435,6 +427,9 @@ colors = {
 
 #fig = go.Figure(data=[go.Scatter(x=[1, 2, 3], y=[4, 1, 2])])
 
+def transform_value(value):
+    return 10 ** value
+
 
 app.layout = html.Div(#style={'backgroundColor': colors['background']}, 
                       style={
@@ -467,21 +462,35 @@ app.layout = html.Div(#style={'backgroundColor': colors['background']},
 
                                     html.Div(id='output-container-range-slider'),                                    
                                     
-                                    dcc.RangeSlider(
-                                        id = 'phyloDF-range',
-                                        #step = None,
-                                        #marks = m,
-                                        min = logminLim,
-                                        max = logmaxLim,
-                                        step = 0.05,
-                                        value=[logminLim, logmaxLim],
-                                        #vertical = True
-                                        ),
+                                    # dcc.RangeSlider(
+                                        # id = 'phyloDF-range',
+                                        # #step = None,
+                                        # marks = [0, 100, 2000, 100000, 133406300],
+                                        # min = logminLim,
+                                        # max = logmaxLim,
+                                        # step = 0.05,
+                                        # value=[logminLim, logmaxLim],
+                                        # #vertical = True
+                                        # ),
 
                                   
 
 
                             ]),
+                            
+                            # html.Div([
+                                 # dcc.RangeSlider(0, 3,
+                                    # id='non-linear-range-slider',
+                                    # marks={i: '{}'.format(10 ** i) for i in range(4)},
+                                    # #value=[0.1, 2],
+                                    # value=[logminLim, logmaxLim],
+                                    # dots=False,
+                                    # step=0.01,
+                                    # updatemode='drag'
+                                # ),
+                            # html.Div(id='output-container-range-slider-non-linear', style={'marginTop': 20})
+                            # ]),
+                           
                                 
                             html.Div([
                                 
@@ -494,14 +503,14 @@ app.layout = html.Div(#style={'backgroundColor': colors['background']},
 
                             html.Div(id='container-zoom-range-slider'),                                    
                     
-                            dcc.Slider(
-                                id = 'phyloDFZoom-range',
-                                min = 50,
-                                max = maxInd,
-                                step = 50,
-                                marks={i: ' ±{} bp'.format(i) for i in range(100, maxInd, 150)},
-                                value = int(maxInd/2)
-                            ),  
+                            # dcc.Slider(
+                                # id = 'phyloDFZoom-range',
+                                # min = 50,
+                                # max = maxInd,
+                                # step = 50,
+                                # marks={i: ' ±{} bp'.format(i) for i in range(100, maxInd, 150)},
+                                # value = int(maxInd/2)
+                            # ),  
 
                             html.Pre(id='click-data-zoom'),
 
@@ -512,7 +521,13 @@ app.layout = html.Div(#style={'backgroundColor': colors['background']},
                                     #'color': colors['text']
                                     #}),
                                 
-                            ]), 
+                            ]),
+                            html.Div(
+                            [
+                                html.Button("Download CSV", id="btn_csv"),
+                                dcc.Download(id="download-dataframe-csv"),
+                            ]),
+                            
                             html.Hr(),
                             html.Div(
                                     children=[
@@ -520,8 +535,10 @@ app.layout = html.Div(#style={'backgroundColor': colors['background']},
                                         dcc.RadioItems(
                                                     id = 'tApprox-radio',
                                                     options=[
-                                                    {'label': 'Approx 1', 'value': 1},
-                                                    {'label': 'Approx 2', 'value': 2}
+                                                    {'label': 'Tm Wallace "Rule of thumb"', 'value': 1},
+                                                    {'label': 'Approx 2 Based on GC content', 'value': 2},
+                                                    {'label': 'Approx 3 Based on GC content', 'value': 3},
+                                                    {'label': 'Nearest neighbor', 'value': 4}
                                                 ],
                                                 value = 1,
                                                 style={'width': '50%', 'display': 'inline-block'}),
@@ -598,33 +615,8 @@ print("###############################################")
     [dash.dependencies.Input('tApprox-radio', 'value')])
 def update_output_6(value):
     return 'You have selected "{}"'.format(value)
-'''
-@app.callback(
-    Output('tdist-plot', 'figure'),
-    [Input('phyloDF-range', 'value'),
-     Input('scat', 'clickData'),
-     Input('tApprox-radio', 'value')])
 
-def update_output_7(lim, clickData, tApprox):
-    degMin = lim[0]
-    degMin = int(10**degMin)
-    degMax = lim[1]
-    degMax = int(10**degMax)
-    #print('MIN: ', str(value[0]) + '-- MAX: ', str(value[1]))
-    phyloFilteredDF3 = pt.filterDF(phyloDF, degMin, degMax)
-    phyloFilteredDF3 = phyloFilteredDF3.reset_index(drop = True)
-    x = clickData['points'][0]['x']
-    #y = clickData['points'][0]['y']
-    x = str(x)
-    print('POSITION IS :' + x)
 
-    primer = phyloDF[phyloFilteredDF3.position == x].index.tolist()
-    primer = int(primer[0])
-    print('PRIMER IS ' + str(primer))
-    tempDist = pt.tempDist(phyloFilteredDF3, primer, tApprox)
-    #optF = 'primer opt ' + str(primer) + ' with T Approx ' + str(tApprox)
-    return tempDist
-'''
 
 print("###############################################")
 print("                    CONTROL 8                  ")
@@ -769,9 +761,18 @@ def update_output_7(tApprox, clickForward, clickReverse):
         if tApprox == 1:
             frwdTemp = frwrdPrimerInfo.TmWallace()
             rvrsTemp = rvrsPrimerInfo.TmWallace()
-        else:
+        elif tApprox == 2:
             frwdTemp = frwrdPrimerInfo.TmAp2()
             rvrsTemp = rvrsPrimerInfo.TmAp2()
+        elif tApprox == 3:
+            frwdTemp = frwrdPrimerInfo.TmAp3()
+            rvrsTemp = rvrsPrimerInfo.TmAp3()
+        elif tApprox == 4:
+            frwdTemp = frwrdPrimerInfo.TmNN()
+            rvrsTemp = rvrsPrimerInfo.TmNN()
+        else:
+            frwdTemp = frwrdPrimerInfo.TmWallace()
+            rvrsTemp = rvrsPrimerInfo.TmWallace()
             
         tempDist = ff.create_distplot([frwdTemp, rvrsTemp],
                                       ['Forward Primer','Reverse Primer'],
@@ -798,6 +799,26 @@ def update_output_7(tApprox, clickForward, clickReverse):
 if __name__ == '__main__':
     app.run_server(debug = False)
 '''
+@app.callback(
+    Output('output-container-range-slider-non-linear', 'children'),
+    Input('non-linear-range-slider', 'value'))
+def update_output_11(value):
+    transformed_value = [transform_value(v) for v in value]
+    return 'Linear Value: {}, Log Value: [{:0.2f}, {:0.2f}]'.format(
+        str(value),
+        transformed_value[0],
+        transformed_value[1]
+    )
+
+
+@app.callback(
+    Output("download-dataframe-csv", "data"),
+    Input("btn_csv", "n_clicks"),
+    prevent_initial_call=True,
+)
+def func(n_clicks):
+    return dcc.send_data_frame(phyloDF.to_csv, 'pd_protege_' + crrntTime + ".csv")
+
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0',debug=False,dev_tools_ui=False,dev_tools_props_check=False)
     
@@ -805,5 +826,7 @@ if __name__ == '__main__':
 ind = phyloDF[phyloDF.position == '690-710'].index.tolist()
 
 
+
+  
 
   
