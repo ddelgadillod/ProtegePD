@@ -91,7 +91,7 @@ parser.add_argument('-v','--verbose',
 
 args = parser.parse_args()
 
-#genFile = args.seqPath
+genFile = args.seqPath
 consensusPerc =  args.consensusPerc
 gapConsensus = args.gapConsensus
 codon = args.codon
