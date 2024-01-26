@@ -32,7 +32,7 @@ docker pull ddelgadillo/protege_base:v1.0.1
 In the CLI, run the following command:
 
 ```
-docker run --rm --mount type=bind,source=/your/files/path/,target=/root/. --name protege -p 127.0.0.1:8050:8050 --cpus 4 protege_base:latest protege-pd -s myseqs.fna
+docker run --rm --mount type=bind,source=/your/files/path/,target=/root/. --name protege -p 127.0.0.1:8050:8050 --cpus 4 ddelgadillo/protege_base:v1.0.1 protege-pd -s myseqs.fna
 ```
 
 Edit the previous command according to your files:
@@ -44,7 +44,7 @@ Edit the previous command according to your files:
 It is possible to check additional running parameters by displaying the help:
 
 ```
-docker run --rm --mount type=bind,source=.,target=/root/. --name protege -p 127.0.0.1:8050:8050 --cpus 4 protege_base:v1.0.1 protege-pd --help
+docker run --rm --mount type=bind,source=.,target=/root/. --name protege -p 127.0.0.1:8050:8050 --cpus 4 ddelgadillo/protege_base:v1.0.1 protege-pd --help
 
 usage: protege-pd [-h] -s SEQ [-c CONS] [-g] [-d COD] [-v]
 
