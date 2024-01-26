@@ -24,7 +24,7 @@ For this Protégé version, access to your Operating System Command Line Interfa
 Push the image from Docker Hub cloud by running:
 
 ```
-docker push ddelgadillo/protege_base:latest
+docker pull ddelgadillo/protege_base:v1.0.1
 ```
 
 ## Run Container
