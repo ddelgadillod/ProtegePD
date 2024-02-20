@@ -185,7 +185,7 @@ align = AlignIO.read(open(out_file), "fasta")
 
 print("Alignment length %i" % align.get_alignment_length())
 for record in align:
-   print(record.seq + " " + record.id) 
+   print(record.seq._data.decode('utf-8') + " " + record.id) 
 
 idAl = []
 alSqs = []
